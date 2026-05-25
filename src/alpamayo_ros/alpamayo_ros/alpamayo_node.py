@@ -378,7 +378,7 @@ class AlpamayoRosNode(Node):
             frames = list(self._camera_buffers[topic])[-self._num_frames :]
             jpeg_buffers.extend([f for _, f in frames])
 
-        decoded = [torchvision.io.decode_jpeg(buf) for buf in jpeg_buffers]
+        decoded = [torchvision.io.decode_jpeg(buf, device="cuda") for buf in jpeg_buffers]
         stacked = torch.stack(decoded)  # [N_total, 3, H, W] uint8 on GPU
         if stacked.shape[-2:] != (560, 1008):
             stacked = torch.nn.functional.interpolate(
@@ -390,7 +390,7 @@ class AlpamayoRosNode(Node):
             stacked[i * self._num_frames : (i + 1) * self._num_frames]
             for i in range(n_cams)
         ]
-        image_frames = torch.stack(camera_tensors, dim=0).cuda()  # [n_cams, n_frames, 3, H, W]
+        image_frames = torch.stack(camera_tensors, dim=0)  # [n_cams, n_frames, 3, H, W]
 
         if len(self._odometry_buffer) < self._num_history_steps * self.skip_num:
             return None
@@ -417,9 +417,7 @@ class AlpamayoRosNode(Node):
 
         # Compute navigation text from current ego position (map frame)
         ego_pos_map = positions_np[-1]
-        nav_start_time = time.time()
         nav_text = self._compute_nav_text(ego_pos_map)
-        self.get_logger().info(f"Navigation instruction takes {time.time() - nav_start_time}s")
         if nav_text and nav_text != self._nav_text:
             self._nav_text = nav_text
             self.get_logger().info(f"Navigation instruction: {nav_text}")
