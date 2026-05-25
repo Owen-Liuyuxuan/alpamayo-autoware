@@ -67,7 +67,7 @@ class AlpamayoRosNode(Node):
         self.declare_parameter("camera_indices", [0])
 
         # Lanelet2 map file for navigation instruction generation
-        self.declare_parameter("lanelet2_map_path", "/home/ukenryu/autoware_map/shinagawa_odaiba_beta/lanelet2_map.osm")
+        self.declare_parameter("lanelet2_map_path", "")
 
         # 5-step Euler keeps trajectory ADE within ~1% of 10-step but cuts
         # ~94 ms / inference (3 saved step_fn calls); adaptive_flow caches
